@@ -57,6 +57,7 @@ class CarState(CarStateBase):
     eac_error_code = self.can_define.dv["EPAS3S_sysStatus"]["EPAS3S_eacErrorCode"].get(int(epas_status["EPAS3S_eacErrorCode"]), None)
     ret.steeringDisengage = epas_status["EPAS3S_handsOnLevel"] >= 3 or (eac_status == "EAC_INHIBITED" and
                                                                         eac_error_code == "EAC_ERROR_HIGH_ANGLE_RATE_SAFETY")
+    #ret.steeringDisengage = epas_status["EPAS3S_handsOnLevel"] >= 3 # 此行和上面2行二选一,上面的在打方向时候更容易Disengage
 
     # Cruise state
     cruise_state = self.can_define.dv["DI_state"]["DI_cruiseState"].get(int(cp_party.vl["DI_state"]["DI_cruiseState"]), None)
