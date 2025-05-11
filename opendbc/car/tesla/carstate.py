@@ -55,9 +55,7 @@ class CarState(CarStateBase):
     # FSD disengages using union of handsOnLevel (slow overrides) and high angle rate faults (fast overrides, high speed)
     # TODO: implement in safety
     eac_error_code = self.can_define.dv["EPAS3S_sysStatus"]["EPAS3S_eacErrorCode"].get(int(epas_status["EPAS3S_eacErrorCode"]), None)
-    ret.steeringDisengage = epas_status["EPAS3S_handsOnLevel"] >= 3 or (eac_status == "EAC_INHIBITED" and
-                                                                        eac_error_code == "EAC_ERROR_HIGH_ANGLE_RATE_SAFETY")
-    #ret.steeringDisengage = epas_status["EPAS3S_handsOnLevel"] >= 3 # 此行和上面2行二选一,上面的在打方向时候更容易Disengage
+    ret.steeringDisengage = self.hands_on_level >= 3 or (eac_status == "EAC_INHIBITED" and
 
     # Cruise state
     cruise_state = self.can_define.dv["DI_state"]["DI_cruiseState"].get(int(cp_party.vl["DI_state"]["DI_cruiseState"]), None)
@@ -93,6 +91,9 @@ class CarState(CarStateBase):
     # AEB
     ret.stockAeb = cp_ap_party.vl["DAS_control"]["DAS_aebEvent"] == 1
 
+    # LKAS
+    ret.stockLkas = cp_ap_party.vl["DAS_steeringControl"]["DAS_steeringControlType"] == 2  # LANE_KEEP_ASSIST
+
     # Stock Autosteer should be off (includes FSD)
     ret.invalidLkasSetting = cp_ap_party.vl["DAS_settings"]["DAS_autosteerEnabled"] != 0
 
@@ -117,6 +118,7 @@ class CarState(CarStateBase):
 
     ap_party_messages = [
       ("DAS_control", 25),
+      ("DAS_steeringControl", 50),
       ("DAS_status", 2),
       ("DAS_settings", 2),
       ("SCCM_steeringAngleSensor", 100),
